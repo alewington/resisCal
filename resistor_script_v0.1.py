@@ -100,17 +100,16 @@ def list_Resistors():
     
 def list_Band():
     #list bands to select from, then select bands and assign to variables for calculation, then calculate and output result.
-    print("Select Band")
-    
+    print("Band List:")    
     for i in band_Types:
-        print(i, i[0])
-
+        print(f"{band_Types.index(i)+1}: {i[0]}")
+    return
 
 #find
 
 #append
 def append_Band(band_Choice):
-    band_Select.append(band_Choice)
+    band_Select.append(band_Choice-1)
     print(band_Select)
     return band_Select
     
@@ -124,12 +123,13 @@ def pop_Band():
     return band_Select
     
 #check
-def check_Band(band_Choice,x):
-    if band_checker[band_Choice-1][x+1] == 0:
-        print(band_checker[band_Choice-1][x+1])
+def check_Band(band_Choice):
+    if band_checker[band_Choice-1][len(band_Select)] == 0:
+        print(band_checker[band_Choice-1][len(band_Select)])
+        print("Invalid band selection for current number of bands selected. Please select a different band.")
         pop_Band()
-        x-=1
-        return x
+        
+        return
 
     
     
@@ -138,47 +138,49 @@ def check_Band(band_Choice,x):
 def calculate_Resistor():
     resistor_Select = resistor_Selection()
     
-    x = 0
     
-    while x < resistor_Select:        
+    
+    while len(band_Select) < resistor_Select:        
         # type number for next band or p to pop last band or c to calculate or r to reset or e to exit
         band_Choice = input("Enter your choice: ")
         res = band_Choice.isdigit()
         
         if res == True:
-            x+=1            
+                       
             append_Band(int(band_Choice))
-            check_Band(int(band_Choice),x)
+            check_Band(int(band_Choice))
             
             continue      
-        elif band_Choice == "p":
-            x-=1
+        elif band_Choice == "p":            
             pop_Band()
+            continue
         elif band_Choice == "c":
-            print("")
+            list_Band()
+            continue
         elif band_Choice == "r":
             band_Select.clear()
             print("Bands reset.")
             print(band_Select)
-            break
+            continue
         elif band_Choice == "e":
             exit()
         else:
             print("Invalid choice, please try again.")
+    return band_Select
      
 def band_Output():
     print("Selected Bands:")
     band_Outlist = []
     for i in band_Select:
-        band_Outlist.append(band_Types[i][0])
-    x = 0
-    for i in band_Outlist:
-        x+=1
-        print(f"Band Colour {x:<2}: {i:<2}", end="|" )  
+        band_Outlist.append(band_Types[i][0])   
+    
+    for i in band_Outlist:        
+        print(f"Band Colour {band_Outlist.index(i)+1:<2}: {i:<2}", end=" | " )  
     print("")
      
         
 calculate_Resistor()
+band_Output()
 
 #display results
 
