@@ -178,10 +178,117 @@ def band_Output():
         print(f"Band Colour {band_Outlist.index(i)+1:<2}: {i:<2}", end=" | " )  
     print("")
      
+#SI unit conversion.
+def si_Unit(resistor_Value):
+    if resistor_Value >= 1000000000:
+        resistor_Value_SI = resistor_Value / 1000000000
+        print(f"Resistor Value: {resistor_Value_SI} GΩ (SI Unit - convertion to a higher Si Prefix)")
+    elif resistor_Value >= 1000000:
+        resistor_Value_SI = resistor_Value / 1000000
+        print(f"Resistor Value: {resistor_Value_SI} MΩ (SI Unit - convertion to a higher Si Prefix)")
+    elif resistor_Value >= 1000:
+        resistor_Value_SI = resistor_Value / 1000
+        print(f"Resistor Value: {resistor_Value_SI} kΩ (SI Unit - convertion to a higher Si Prefix)")
+    else:
+        print(f"Resistor Value: {resistor_Value} Ω (SI Unit - no conversion needed)")
+
+#start of calculation. data collation and organisation.
+def band_Calculator_Setup():    
+    if len(band_Select) == 6:
+        band_Multiplier = band_Types[band_Select[3]][2]
+        band_Tolerence = band_Types[band_Select[4]][3]
+        band_Coefficent = band_Types[band_Select[5]][4]
+        #print(f"Multiplier: {band_Multiplier}, Tolerence: {band_Tolerence}%, Coefficent: {band_Coefficent}ppm/K")
+        return band_Multiplier, band_Tolerence, band_Coefficent
+    elif len(band_Select) == 5:
+        band_Multiplier = band_Types[band_Select[3]][2]
+        band_Tolerence = band_Types[band_Select[4]][3]
+        band_Coefficent = 0  # Default value for 5-band resistors
+        #print(f"Multiplier: {band_Multiplier}, Tolerence: {band_Tolerence}%")
+        return band_Multiplier, band_Tolerence, band_Coefficent  # Default coefficient for 5-band resistors           
+    elif len(band_Select) == 4:
+        band_Multiplier = band_Types[band_Select[2]][2]
+        band_Tolerence = band_Types[band_Select[3]][3]
+        band_Coefficent = 0  # Default value for 4-band resistors
+        #print(f"Multiplier: {band_Multiplier}, Tolerence: {band_Tolerence}%")
+        return band_Multiplier, band_Tolerence, band_Coefficent  # Default coefficient for 4-band resistors
+    elif len(band_Select) == 3:
+        band_Multiplier = band_Types[band_Select[2]][2]        
+        band_Tolerence = 20  # Default value for 3-band resistors, no band 4 is equal to band 3 + No Band 20% Tolerence
+        band_Coefficent = 0  # Default value for 3-band resistors
+        #print(f"Multiplier: {band_Multiplier}")
+        return band_Multiplier, band_Tolerence, band_Coefficent
+    else:
+        print("Invalid number of bands selected. Please select between 3 and 6 bands.")
+
+
+def band_Calculator():
+    band_Multiplier, band_Tolerence, band_Coefficent = band_Calculator_Setup() # type: ignore
+    if len(band_Select) == 6:
+        band_Value = (band_Types[band_Select[0]][1]*100) + (band_Types[band_Select[1]][1]*10) + (band_Types[band_Select[2]][1])        
+        resistor_Value = band_Value * band_Multiplier
+        #print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%, Coefficent: {band_Coefficent}ppm/K")
+        return resistor_Value, band_Tolerence, band_Coefficent
+
+    elif len(band_Select) == 5:
+        band_Value = (band_Types[band_Select[0]][1]*100) + (band_Types[band_Select[1]][1]*10) + (band_Types[band_Select[2]][1])
+        resistor_Value = band_Value * band_Multiplier
+        #print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%")
+        band_Coefficent = 0  # Default value for 5-band resistors
+        return resistor_Value, band_Tolerence, band_Coefficent
+
+    elif len(band_Select) == 4:
+        band_Value = (band_Types[band_Select[0]][1]*10) + (band_Types[band_Select[1]][1])
+        resistor_Value = band_Value * band_Multiplier
+        #print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%")
+        band_Coefficent = 0  # Default value for 4-band resistors
+        return resistor_Value, band_Tolerence, band_Coefficent
+    
+    elif len(band_Select) == 3:
+        band_Value = (band_Types[band_Select[0]][1]*10) + (band_Types[band_Select[1]][1])
+        resistor_Value = band_Value * band_Multiplier
+        #print(f"Resistor Value: {resistor_Value} ohms")
+        band_Coefficent = 0  # Default value for 3-band resistors
+        band_Tolerence = 0  # Default value for 3-band resistors
+        return resistor_Value, band_Tolerence, band_Coefficent
+    else:
+        print("Invalid number of bands selected. Please select between 3 and 6 bands.")
+
+
+#this can be reduced in code size once checked for accuracy.
+#join 3 and 4 then join 5 and 6 together as they are the same for 3 and 4 band resistors and 5 and 6 band resistors.
+def band_Calculator_Differential():
+    resistor_Value, band_Tolerence, band_Coefficent = band_Calculator() # type: ignore
+    if len(band_Select) == 6:
+        resistor_Value_Max = resistor_Value + (resistor_Value * (band_Tolerence/100))
+        resistor_Value_Min = resistor_Value - (resistor_Value * (band_Tolerence/100))
+        print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%, Coefficent: {band_Coefficent}ppm/K, Max Value: {resistor_Value_Max} ohms, Min Value: {resistor_Value_Min} ohms")
+        si_Unit(resistor_Value)
+
+    elif len(band_Select) == 5:
+        resistor_Value_Max = resistor_Value + (resistor_Value * (band_Tolerence/100))
+        resistor_Value_Min = resistor_Value - (resistor_Value * (band_Tolerence/100))
+        print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%, Max Value: {resistor_Value_Max} ohms, Min Value: {resistor_Value_Min} ohms")
+        si_Unit(resistor_Value)
+
+    elif len(band_Select) == 4:
+        resistor_Value_Max = resistor_Value + (resistor_Value * (band_Tolerence/100))
+        resistor_Value_Min = resistor_Value - (resistor_Value * (band_Tolerence/100))
+        print(f"Resistor Value: {resistor_Value} ohms, Tolerence: {band_Tolerence}%, Max Value: {resistor_Value_Max} ohms, Min Value: {resistor_Value_Min} ohms")
+        si_Unit(resistor_Value)
         
+    elif len(band_Select) == 3:
+        print(f"Resistor Value: {resistor_Value} ohms")
+        si_Unit(resistor_Value)
+    
+    else:
+        print("Invalid number of bands selected. Please select between 3 and 6 bands.")
+
+
+       
 calculate_Resistor()
 band_Output()
-
+band_Calculator_Differential()
 #display results
 
 #reset
